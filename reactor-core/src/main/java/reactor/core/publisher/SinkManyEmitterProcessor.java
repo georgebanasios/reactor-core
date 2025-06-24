@@ -57,7 +57,7 @@ import static reactor.core.publisher.FluxPublish.PublishSubscriber.TERMINATED;
  * @author Stephane Maldini
  */
 final class SinkManyEmitterProcessor<T> extends Flux<T> implements InternalManySink<T>,
-	Sinks.ManyWithUpstream<T>, CoreSubscriber<T>, Scannable, Disposable, ContextHolder {
+	Sinks.ManyWithUpstream<T>, CoreSubscriber<T>, Scannable, Disposable, ContextHolder, SourceProducer<T> {
 
 	@SuppressWarnings("rawtypes")
 	static final FluxPublish.PubSubInner[] EMPTY = new FluxPublish.PublishInner[0];
@@ -292,6 +292,13 @@ final class SinkManyEmitterProcessor<T> extends Flux<T> implements InternalManyS
 	int getPending() {
 		Queue<T> q = queue;
 		return q != null ? q.size() : 0;
+	}
+
+	@Override
+	public void terminateAndCleanup() {
+		if (Operators.terminate(S, this)) {
+			dispose();
+		}
 	}
 
 	//TODO evaluate the use case for Disposable in the context of Sinks

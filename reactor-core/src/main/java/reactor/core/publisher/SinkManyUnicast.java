@@ -84,7 +84,7 @@ import reactor.util.context.Context;
  *
  * @param <T> the input and output type
  */
-final class SinkManyUnicast<T> extends Flux<T> implements InternalManySink<T>, Disposable, Fuseable.QueueSubscription<T>, Fuseable {
+final class SinkManyUnicast<T> extends Flux<T> implements InternalManySink<T>, Disposable, Fuseable.QueueSubscription<T>, Fuseable, SourceProducer<T> {
 
 	/**
 	 * Create a new {@link SinkManyUnicast} that will buffer on an internal queue in an
@@ -514,5 +514,10 @@ final class SinkManyUnicast<T> extends Flux<T> implements InternalManySink<T>, D
 	@Override
 	public boolean isDisposed() {
 		return cancelled || done;
+	}
+
+	@Override
+	public void terminateAndCleanup() {
+		this.cancel();
 	}
 }

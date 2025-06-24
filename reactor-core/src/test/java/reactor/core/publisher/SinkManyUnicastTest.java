@@ -19,12 +19,8 @@ package reactor.core.publisher;
 import java.time.Duration;
 import java.util.PriorityQueue;
 import java.util.Queue;
-import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.*;
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.locks.LockSupport;
 
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -340,4 +336,22 @@ public class SinkManyUnicastTest {
 				.as("after scannable subscription")
 				.containsExactly(scannable);
 	}
+
+	@Test
+	void shouldClearBufferOnImmediateCancellation() {
+		BlockingQueue<Integer> queue = new LinkedBlockingQueue<>();
+
+		Sinks.Many<Integer> sink = Sinks.many().unicast().onBackpressureBuffer(queue);
+
+		sink.tryEmitNext(1);
+		sink.tryEmitNext(2);
+		sink.tryEmitNext(3);
+
+		assertThat(queue).hasSize(3);
+
+		sink.asFlux().take(0).blockLast();
+
+		assertThat(queue).isEmpty();
+	}
+
 }
